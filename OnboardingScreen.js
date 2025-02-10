@@ -1,8 +1,57 @@
-import React, { useRef } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Animated, StatusBar } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Animated,
+  StatusBar
+} from 'react-native';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
+// SplashScreen'ı önceden gösterme
+SplashScreen.preventAutoHideAsync();
 
 export default function OnboardingScreen({ navigation }) {
+  const [loaded, error] = useFonts({
+    'Great-Vibes': require('./assets/fonts/great-vibes.ttf'),
+    'Lobster-Regular': require('./assets/fonts/Lobster-Regular.ttf'),
+  });
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  // Eğer font yüklenmemişse hiçbir şey döndürme
+  if (!loaded && !error) {
+    return null;
+  }
+
   const animatedValue = useRef(new Animated.Value(1)).current;
+  
+  // Animated value for image scale
+  const imageScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Create a looped animation for zooming in and out
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(imageScale, {
+          toValue: 1.2,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(imageScale, {
+          toValue: 1,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [imageScale]);
 
   const handlePress = (screen) => {
     Animated.sequence([
@@ -23,20 +72,27 @@ export default function OnboardingScreen({ navigation }) {
     transform: [{ scale: animatedValue }],
   };
 
+  const animatedImageStyle = {
+    transform: [{ scale: imageScale }],
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <Image source={require('./assets/ebru4.jpg')} style={styles.image} />
+      <Animated.Image 
+        source={require('./assets/ebru4.jpg')} 
+        style={[styles.image, animatedImageStyle]} 
+      />
       
       <View style={styles.overlay} />
 
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Your Adventure!</Text>
-        <Text style={styles.subtitle}>Discover amazing possibilities ahead.</Text>
+        <Text style={styles.title}>Welcome</Text>
+        <Text style={styles.subtitle}>Discover amazing possibilities.</Text>
 
         <TouchableOpacity 
           style={styles.button} 
-          onPress={() => handlePress('Onboarding')}
+          onPress={() => handlePress('Home')}
         >
           <Animated.Text style={[styles.buttonText, animatedButtonStyle]}>Get Started</Animated.Text>
         </TouchableOpacity>
@@ -54,14 +110,13 @@ export default function OnboardingScreen({ navigation }) {
 
         <View style={styles.indicators}>
           <View style={styles.indicatorActive} />
-          <View onPress={() => handlePress('Home')} style={styles.indicator} />
+          <View style={styles.indicator} />
           <View style={styles.indicator} />
         </View>
       </View>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -79,7 +134,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.65)', // Daha koyu yarı saydam
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   content: {
     position: 'absolute',
@@ -90,34 +145,34 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 74,
+    marginBottom: 1,
     color: 'white',
-    textAlign: 'center',
+    fontFamily: 'Great-Vibes',
   },
   subtitle: {
-    fontSize: 18,
-    marginBottom: 30,
+    fontSize: 29,
+    marginBottom: 18,
     color: 'white',
     textAlign: 'center',
+    fontFamily: 'Lobster-Regular',
   },
   button: {
-    backgroundColor: '#FF7979', // Dikkat çekici bir renk
+    backgroundColor: '#FF7979',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
-    width: '70%',
+    width: '50%',
     alignItems: 'center',
-    elevation: 5, // Gölgelendirme
+    elevation: 5,
   },
   loginButton: {
-    backgroundColor: '#55EBA0', // Farklı bir estetik renk
+    backgroundColor: '#55EBA0',
     padding: 15,
     borderRadius: 10,
-    width: '70%',
+    width: '50%',
     alignItems: 'center',
-    elevation: 5, // Gölgelendirme
+    elevation: 5,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -146,8 +201,8 @@ const styles = StyleSheet.create({
   indicatorActive: {
     height: 10,
     width: 10,
-    borderRadius:4,
-    backgroundColor: '#FF7979', // Aktif indikatör rengi
+    borderRadius: 4,
+    backgroundColor: '#FF7979',
     margin: 4,
   },
 });
